@@ -3,7 +3,7 @@ package autochar;
 import processing.core.PApplet;
 import autochar.Sample.Type;
 
-public class AutocharIndex extends PApplet {
+public class AutocharApp extends PApplet { // PORT from index.html
 	
 	public static boolean PRODUCTION = false;
 	public static boolean FULLSCREEN = false;
@@ -39,8 +39,8 @@ public class AutocharIndex extends PApplet {
 		System.out.println("[INFO] Autochar.version [" + VERSION + "]");
 
 		bell = Sample.create(this, "bell.wav");
-		//stroke = Sample.create(this, "stroke.wav");
-		bell.play();
+		stroke = Sample.create(this, "stroke.wav");
+		stroke.play();
 	}
 
 	public void draw() {
@@ -96,8 +96,8 @@ public class AutocharIndex extends PApplet {
 			parseOpts(args);
 
 		args = FULLSCREEN ? new String[] { "--present", "--bgcolor=#ffffff",
-				"--hide-stop", AutocharIndex.class.getName() }
-				: new String[] { AutocharIndex.class.getName() };
+				"--hide-stop", AutocharApp.class.getName() }
+				: new String[] { AutocharApp.class.getName() };
 
 		PApplet.main(args);
 	}

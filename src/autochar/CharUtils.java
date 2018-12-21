@@ -1,5 +1,5 @@
 package autochar;
 
-public class CharUtils {
+public class CharUtils { // PORT from cutils.js
 
 }

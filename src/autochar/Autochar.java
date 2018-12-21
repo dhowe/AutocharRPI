@@ -1,5 +1,5 @@
 package autochar;
 
-public class Autochar {
+public class Autochar { // PORT from autochar.js
 
 }

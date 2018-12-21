@@ -19,7 +19,7 @@ public class NativeSample extends Sample
   private static PrintWriter OUT = new PrintWriter(System.out); 
   private static PrintWriter ERR = new PrintWriter(System.err);
 
-  static String executable = AutocharIndex.OS.startsWith("Mac") ? "afplay" : "aplay";
+  static String executable = AutocharApp.OS.startsWith("Mac") ? "afplay" : "aplay";
   static ExecutorService threads =  Executors.newFixedThreadPool(5);
   
   private String sampleFile;
