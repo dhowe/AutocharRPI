@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>autochar</title>
+  <script src="node_modules/p5/lib/p5.min.js"></script>
+  <script src="node_modules/tone/build/Tone.min.js"></script>
+  <script src="cutils.js"></script>
+  <script src="automachar.js"></script>
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <script>
+    var bell, typer, conf, word, tid, strokes = [];
+    var wmed = '';
+    var def = '';
+    var showDefs = 1;
+    var showMed = 1;
+    var doSound = 1;
+    var invertText = 0;
+    var eraseSpeed = 0;
+    var strokeDelay = 300;
+    var bgcol = [245, 245, 245];
+    var hitcol = [0, 0, 0];
+    var txtcol = [0, 0, 0];
+    var rgb = [0, 0, 0];
+
+    function preload()
+    {
+      if (doSound)
+      {
+        bell = new Tone.Player("res/chime.wav").toMaster();
+        for (var i = 0; i <= 45; i++)
+          strokes[i] = new Tone.Player('wav/stroke' + i + '.wav').toMaster();
+      }
+      charData = loadJSON('chardata.json');
+      wordData = loadJSON('words-trad.json');
+      conf = loadJSON('config.json');
+    }
+
+    function setup()
+    {
+      createCanvas(680, 490);
+      textAlign(CENTER);
+      textSize(14);
+
+      util = new CharUtils(charData, wordData, 1);
+      typer = new Automachar(onActionComplete, onNextTarget);
+      parseConf();
+
+      word = typer.word.literal;
+      def = showDefs ? util.definition(word) : '';
+      console.log("    -> " + word, def);
+      next();
+    }
+
+    function draw()
+    {
+      adjustColor();
+      background(rgb[0], rgb[1], rgb[2]);
+      typer.draw(this._renderer, txtcol);
+      showDefs && text(def, width / 2, height - 10);
+      showMed && text(wmed, width - 10, 15);
+    }
+
+    function next()
+    {
+      if (typer.step())
+      { // drawing
+        tid = setTimeout(next, strokeDelay); //random(300, 600));
+      }
+      else
+      { // erasing
+        eraseSpeed ? (tid = setTimeout(next, eraseSpeed)) : next();
+      }
+    }
+
+    function onNextTarget(next, numStrokes)
+    {
+      var numStrokes = typer.currentStrokeCount;
+      var nSpeed = min(1, numStrokes / 12);
+      strokeDelay = map(nSpeed, 0, 1, 1000, 200);
+      //console.log(numStrokes, nSpeed, strokeDelay);
+    }
+
+    function onActionComplete(next, med)
+    {
+      if (next)
+      {
+        for (var i = 0; i < rgb.length; i++)
+        {
+          rgb[i] = hitcol[i];
+          if (!invertText) txtcol[i] = 255;
+        }
+
+        playStroke(true);
+        playBell()
+
+        if (showDefs) def = util.definition(next);
+
+        console.log(word + " -> " + next, med, def);
+
+        wmed = med;
+        word = next;
+      }
+      else
+      {
+        playStroke();
+      }
+    }
+
+    function playBell() {
+      //doSound && bell.play(0, random(.6, .9), random(.5, .8));
+      if (doSound)
+      {
+        bell.playbackRate = random(.6, .9);
+        bell.volume.value = random(.7, 1);
+        bell.restart();
+      }
+    }
+
+    function playStroke(quiet) {
+      // delay, rate, amp, cue, duration
+      //doSound && strokes[random(strokes.length) << 0]
+      //.play(0, random(.6, .9), random(.05, .3), 0, random(.01, 0.1));
+      if (doSound)
+      {
+        var stroke = strokes[random(strokes.length) << 0];
+        stroke.playbackRate = random(.5, .8);
+        stroke.volume.value = quiet ? -20 : -10;
+        stroke.restart(undefined, 0, random(.1, .2)); //.05, 0.1));
+      }
+    }
+
+    function keyReleased()
+    {
+      if (false && key == ' ') clearTimeout(tid);
+      if (key == 's') eraseSpeed = eraseSpeed > 0 ? 0 : 35;
+    }
+
+    function adjustColor()
+    {
+      for (var i = 0; i < rgb.length; i++)
+      {
+        if (rgb[i] < bgcol[i] - 1) rgb[i] = lerp(rgb[i], bgcol[i], .05);
+        if (invertText)
+          txtcol[i] = 255 - floor(rgb[i]);
+        else
+        if (txtcol[i] > 0) txtcol[i] -= 5;
+      }
+    }
+
+    function parseConf()
+    {
+      if (conf)
+      {
+        if (conf.bgcol && conf.bgcol.length == 3)
+        {
+          bgcol = conf.bgcol;
+          console.log('config.bgcol: ' + bgcol);
+        }
+        else console.log('default.bgcol: ' + hitcol);
+
+        if (conf.hitcol && conf.hitcol.length == 3)
+        {
+          console.log('config.hitcol: ' + hitcol);
+        }
+        else console.log('default.hitcolor: ' + hitcol);
+      }
+
+      for (var i = 0; i < rgb.length; i++)
+      {
+        rgb[i] = bgcol[i];
+        if (invertText) txtcol[i] = 255 - rgb[i];
+      }
+    }
+  </script>
+</head>
+
+<body>
+  click for sound, type 's' to toggle slow-erase
+</body>
+
+</html>
